@@ -1,6 +1,4 @@
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -18,17 +16,27 @@ public class MainClass {
 
 
 
-    public static void main(String[] args) throws  Exception{
+    public static void main(String[] args) throws  Exception {
 
-        ForkJoinPool pool = new ForkJoinPool(8);
-        FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\dir").toRealPath());
-        //FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\NokiaTaskFileConcurrency\\directory").toRealPath());
-        Long current = System.currentTimeMillis();
-        Arrays.stream(pool.invoke(fileCount)).forEach(l->System.out.print(l+" "));
-        //fileCount.printLetterCount();
-        System.out.println();
-        Long after = System.currentTimeMillis();
-        System.out.println(after-current);
+        if (args.length !=1) {
+            throw new RuntimeException();
+        } else {
+            String path = args[0];
+
+            ForkJoinPool pool = new ForkJoinPool(8);
+            FileCount fileCount = new FileCount(Paths.get(path).toRealPath());
+            //FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\dir").toRealPath());
+            //FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\NokiaTaskFileConcurrency\\directory").toRealPath());
+          //  Long current = System.currentTimeMillis();
+            BigInteger [] bigIntegers = pool.invoke(fileCount);
+            for(int i=0;i<bigIntegers.length;i++){
+                System.out.print((char)(i+'a') + "\t"+bigIntegers[i]+'\n');
+            }
+            //fileCount.printLetterCount();
+            //System.out.println();
+           // Long after = System.currentTimeMillis();
+            //System.out.println(after - current);
+        }
     }
 
 
@@ -63,12 +71,15 @@ class FileCount extends RecursiveTask<BigInteger[]> {
             int c;
             while ((c=fileReader.read() )!= -1){
 
-                if (Character.isLowerCase((char)c)) {
+                if (Character.isLowerCase((char)c) && c>='a'&&c<='z') {
 
                     try {
                         tempLetterCount[(char)c-'a']=tempLetterCount[(char)c-'a'].add(new BigInteger("1"));
                     } catch (Exception e) {
+
                         e.printStackTrace();
+                       // System.out.println((char)c+ " --------------------- ");
+
 
 
 
@@ -77,7 +88,7 @@ class FileCount extends RecursiveTask<BigInteger[]> {
                 }
             }
             return tempLetterCount;
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return new BigInteger[26];
