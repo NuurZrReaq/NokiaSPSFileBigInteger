@@ -17,26 +17,26 @@ public class MainClass {
 
 
     public static void main(String[] args) throws  Exception {
-
+/*
         if (args.length !=1) {
-            throw new RuntimeException();
-        } else {
-            String path = args[0];
+            //throw new RuntimeException();
+        } else*/
+            String path = "C:\\Users\\NoorZ\\Documents\\dir";
 
             ForkJoinPool pool = new ForkJoinPool(8);
             FileCount fileCount = new FileCount(Paths.get(path).toRealPath());
             //FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\dir").toRealPath());
             //FileCount fileCount = new FileCount(Paths.get("C:\\Users\\NoorZ\\Documents\\NokiaTaskFileConcurrency\\directory").toRealPath());
-          //  Long current = System.currentTimeMillis();
+            Long current = System.currentTimeMillis();
             BigInteger [] bigIntegers = pool.invoke(fileCount);
+            Long after = System.currentTimeMillis();
             for(int i=0;i<bigIntegers.length;i++){
                 System.out.print((char)(i+'a') + "\t"+bigIntegers[i]+'\n');
             }
             //fileCount.printLetterCount();
-            //System.out.println();
-           // Long after = System.currentTimeMillis();
-            //System.out.println(after - current);
-        }
+            System.out.println();
+            System.out.println(after - current);
+
     }
 
 
@@ -52,7 +52,6 @@ class FileCount extends RecursiveTask<BigInteger[]> {
 
 
     private final Path filePath;
-    //private  static long [] letterCount = new long[26];
 
 
     public FileCount(Path filePath) {
@@ -62,38 +61,49 @@ class FileCount extends RecursiveTask<BigInteger[]> {
 
 
 
-    public  BigInteger [] countLowerCase(File file)  {
-        BigInteger  [] tempLetterCount = new BigInteger[26];
-        init(tempLetterCount);
-        try {
-            FileInputStream fin = new FileInputStream(file);
-            BufferedInputStream fileReader = new BufferedInputStream(fin);
-            int c;
-            while ((c=fileReader.read() )!= -1){
+    public BigInteger[] countLowerCase(File file) {
+        int[] tempLetterCount = new int[26];
+        //init(tempLetterCount);
+        char [] charArray = new char[16*1024];
+        int numChar;
+        try( BufferedReader fileReader = new BufferedReader(new FileReader(file))) {
 
-                if (Character.isLowerCase((char)c) && c>='a'&&c<='z') {
+            while ((numChar = fileReader.read(charArray)) >0) {
 
-                    try {
-                        tempLetterCount[(char)c-'a']=tempLetterCount[(char)c-'a'].add(new BigInteger("1"));
-                    } catch (Exception e) {
+                for(int i =0;i<numChar;i++){
+                    if (charArray[i]>='a'&& charArray[i] <='z') {
 
-                        e.printStackTrace();
-                       // System.out.println((char)c+ " --------------------- ");
+                        try {
+                            tempLetterCount[charArray[i]-'a']++;
+                        } catch (Exception e) {
 
-
-
+                            e.printStackTrace();
+                        }
 
                     }
 
                 }
+
             }
-            return tempLetterCount;
+
+
+            return change(tempLetterCount);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return new BigInteger[26];
 
 
+    }
+
+
+    private BigInteger[] change(int[] bigIntegers) {
+        BigInteger [] bigIntegers1 = new BigInteger[26];
+        for (int i = 0; i < bigIntegers.length; i++) {
+            bigIntegers1[i] = new BigInteger(Integer.toString(bigIntegers[i]));
+        }
+        return bigIntegers1;
 
     }
 
